@@ -13,33 +13,59 @@ from tkinter import PhotoImage
 # contient les provinces voisines. Cette structure sera nettoyee ensuite pour
 # obtenir un graphe non oriente sans doublons.
 RAW_GRAPH = {
-    "Kinshasa": ["Kongo Central", "Kwango", "Mai-Ndombe"],
-    "Kongo Central": ["Kinshasa", "Kwango"],
-    "Kwango": ["Kinshasa", "Kongo Central", "Kwilu", "Mai-Ndombe", "Kwilu"],
-    "Kwilu": ["Kwango", "Mai-Ndombe", "Kasai", "Kwango"],
-    "Mai-Ndombe": ["Kinshasa", "Kwango", "Kwilu", "Equateur", "Tshuapa", "Sankuru", "Kasai"],
-    "Equateur": ["Mai-Ndombe", "Mongala", "Nord-Ubangi", "Sud-Ubangi", "Tshuapa"],
+    "Kinshasa": ["Kongo Central"],
+
+    "Kongo Central": ["Kinshasa", "Kwango", "Kwilu"],
+
+    "Kwango": ["Kongo Central", "Kwilu", "Mai-Ndombe"],
+
+    "Kwilu": ["Kongo Central", "Kwango", "Mai-Ndombe", "Kasai"],
+
+    "Mai-Ndombe": ["Kwango", "Kwilu", "Kasai", "Sankuru", "Tshuapa", "Equateur"],
+
+    "Equateur": ["Mai-Ndombe", "Tshuapa", "Mongala", "Nord-Ubangi", "Sud-Ubangi"],
+
     "Mongala": ["Equateur", "Nord-Ubangi", "Tshopo"],
+
     "Nord-Ubangi": ["Equateur", "Mongala", "Sud-Ubangi", "Bas-Uele"],
+
     "Sud-Ubangi": ["Equateur", "Nord-Ubangi"],
-    "Tshuapa": ["Equateur", "Mai-Ndombe", "Tshopo", "Sankuru"],
-    "Tshopo": ["Tshuapa", "Mongala", "Bas-Uele", "Haut-Uele", "Ituri", "Nord-Kivu", "Maniema", "Sankuru"],
+
+    "Tshuapa": ["Equateur", "Mai-Ndombe", "Sankuru", "Tshopo"],
+
+    "Tshopo": ["Tshuapa", "Mongala", "Bas-Uele", "Haut-Uele", "Ituri", "Maniema", "Sankuru"],
+
     "Bas-Uele": ["Nord-Ubangi", "Tshopo", "Haut-Uele"],
+
     "Haut-Uele": ["Bas-Uele", "Tshopo", "Ituri"],
+
     "Ituri": ["Haut-Uele", "Tshopo", "Nord-Kivu"],
-    "Nord-Kivu": ["Ituri", "Tshopo", "Maniema", "Sud-Kivu"],
+
+    "Nord-Kivu": ["Ituri", "Maniema", "Sud-Kivu"],
+
     "Sud-Kivu": ["Nord-Kivu", "Maniema", "Tanganyika"],
+
     "Maniema": ["Tshopo", "Nord-Kivu", "Sud-Kivu", "Tanganyika", "Sankuru", "Lomami"],
+
     "Tanganyika": ["Sud-Kivu", "Maniema", "Haut-Lomami", "Lualaba", "Haut-Katanga"],
-    "Haut-Lomami": ["Tanganyika", "Lualaba", "Lomami", "Haut-Katanga"],
-    "Lualaba": ["Tanganyika", "Haut-Lomami", "Haut-Katanga", "Kasai", "Kasai-Central"],
+
+    "Haut-Lomami": ["Tanganyika", "Lualaba", "Haut-Katanga", "Lomami"],
+
+    "Lualaba": ["Tanganyika", "Haut-Lomami", "Haut-Katanga", "Kasai-Central"],
+
     "Haut-Katanga": ["Tanganyika", "Haut-Lomami", "Lualaba"],
+
     "Sankuru": ["Mai-Ndombe", "Tshuapa", "Tshopo", "Maniema", "Lomami", "Kasai-Oriental", "Kasai-Central"],
+
     "Lomami": ["Sankuru", "Maniema", "Haut-Lomami", "Kasai-Oriental", "Kasai-Central"],
-    "Kasai": ["Kwilu", "Mai-Ndombe", "Kasai-Central", "Lualaba"],
+
+    "Kasai": ["Kwilu", "Mai-Ndombe", "Kasai-Central"],
+
     "Kasai-Central": ["Kasai", "Sankuru", "Lomami", "Kasai-Oriental", "Lualaba"],
-    "Kasai-Oriental": ["Kasai-Central", "Sankuru", "Lomami"],
+
+    "Kasai-Oriental": ["Kasai-Central", "Sankuru", "Lomami"]
 }
+
 
 
 # Coordonnees d'affichage des sommets sur le canevas Tkinter.
@@ -140,36 +166,10 @@ def normalize_graph(raw_graph):
 
 
 def sort_nodes(graph):
-    """
-    Trie les sommets par degre decroissant.
-
-    Entree :
-        graph (dict[str, list[str]]) : graphe a colorier.
-
-    Sortie :s
-        list[str] : sommets tries du plus contraint au moins contraint.
-    """
     return sorted(graph, key=lambda node: (-len(graph[node]), node))
 
 
 def welsh_powell(graph):
-    """
-    Applique l'algorithme de Welsh-Powell.
-
-    Principe :
-        1. Trier les sommets par degre decroissant.
-        2. Prendre le premier sommet non colore.
-        3. Lui attribuer une nouvelle couleur.
-        4. Parcourir les autres sommets et attribuer la meme couleur
-           a tous ceux qui ne sont en conflit avec aucun sommet deja colore
-           avec cette couleur.
-
-    Entree :
-        graph (dict[str, list[str]]) : graphe non oriente.
-
-    Sortie :
-        dict[str, int] : association province -> numero de couleur.
-    """
     sorted_nodes = sort_nodes(graph)
     color_map = {}
     current_color = 0
@@ -200,18 +200,6 @@ def welsh_powell(graph):
 
 
 def validate_coloring(graph, color_map):
-    """
-    Verifie la validite de la coloration obtenue.
-
-    Entree :
-        graph (dict[str, list[str]]) : graphe des provinces.
-        color_map (dict[str, int]) : coloration calculee.
-
-    Sortie :
-        list[tuple[str, str]] :
-            liste des conflits detectes. Une liste vide signifie que la
-            coloration respecte bien la contrainte d'adjacence.
-    """
     conflicts = []
 
     # On parcourt chaque arete une seule fois grace au test node < neighbor.
@@ -225,18 +213,6 @@ def validate_coloring(graph, color_map):
 def resize_photo_to_max_size(image, target_max_size):
     """
     Redimensionne une PhotoImage vers une taille maximale cible.
-
-    Entree :
-        image (PhotoImage) : image chargee depuis le fichier.
-        target_max_size (int) : taille maximale souhaitee pour largeur/hauteur.
-
-    Sortie :
-        PhotoImage : image reduite en utilisant uniquement les outils Tkinter
-        (zoom et subsample), donc sans bibliotheque externe.
-
-    Remarque :
-        ce traitement est a eviter si l'image tient deja dans le canevas,
-        car tkinter produit un rendu tres pixelise sur les traits fins.
     """
     current_max = max(image.width(), image.height())
     if current_max <= target_max_size:
